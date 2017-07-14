@@ -1,0 +1,105 @@
+﻿@{
+    ViewData["Title"] = "Edit Patient";
+}
+<h3>@ViewData["Title"].</h3>
+
+<div class="container">
+    <div class="featurette" id="about">
+        <div class="container">
+            <div class="row">
+                <h3></h3>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-sm-8 col-md-6">
+                    <form role="form">
+                        <div class="row">
+                            <div class="col-xs-12 col-md-6"><a class="btn btn-info btn-block" asp-controller="Home" asp-action="Index">Back</a></div>
+                        </div>
+                        <hr class="colorgraph">
+                        <div class="form-group">
+                            <label for="first_name">First Name:</label>
+                            <input type="text" name="first_name" id="txtFirstName" class="form-control" placeholder="First Name" tabindex="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name">Last Name:</label>
+                            <input type="text" name="last_name" id="txtLastName" class="form-control" placeholder="Last Name" tabindex="2">
+                        </div>
+                        <div class="form-group">
+                            <label for="age">Age:</label>
+                            <input type="text" name="age" id="txtAge" class="form-control" placeholder="Age" tabindex="3">
+                        </div>
+                        <hr class="colorgraph">
+                        <div class="row">
+                            <div class="col-xs-12 col-md-6">
+                                <input id="btnEditPatient" value="Edit Patient" class="btn btn-primary btn-block" tabindex="7">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        function RedirectHome() {
+            var url = '@Url.Action("Index", "Home")';
+            window.location.href = url;
+        }
+        function RedirectAdd() {
+            var url = '@Url.Action("AddPatient", "Home")';
+            window.location.href = url;
+        }
+
+        $(document).ready(function () {
+            var url = document.URL.split('/');
+            var id = url.pop();
+            var data = '{id: ' + id + ' }';
+            if (Number.isNaN(id)) {
+                RedirectHome();
+            } else {
+                $.ajax({
+                    type: 'GET',
+                    url: 'http://localhost:60548/api/Patient/' + id,
+                    contentType: "application/json; charset=utf-8",
+                    success: function (response) {
+                        $("#txtFirstName").val(response.firstName);
+                        $("#txtLastName").val(response.lastName);
+                        $("#txtAge").val(response.age);
+                    },
+                    failure: function (response) {
+                        alert("Failure. Details: " + response.responseText);
+                    },
+                    error: function (response) {
+                        alert("Error. Details: " + response.responseText);
+                    }
+                });
+            }
+
+            $("#btnEditPatient").click(function () {
+                var data = '{Id:' + id + ',' +
+                    'FirstName: "' + $("#txtFirstName").val() + '", ' +
+                    'LastName: "' + $("#txtLastName").val() + '" ,' +
+                    'Age: ' + $("#txtAge").val() + ' }';
+                $.ajax({
+                    type: 'PUT',
+                    url: 'http://localhost:60548/api/Patient/' + id,
+                    data: data,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        RedirectHome();
+                    },
+                    failure: function (response) {
+                        alert("Failure. Details: " + response.responseText);
+                    },
+                    error: function (response) {
+                        alert("Error. Details: " + response.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+}

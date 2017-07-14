@@ -1,0 +1,137 @@
+﻿@{
+    ViewData["Title"] = "Display Patients";
+}
+
+<h2>@ViewData["Title"].</h2>
+<div class="row">
+    <div class="row">
+        <h3></h3>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <p class="col-md-2">
+                <a asp-area="" asp-controller="Home" asp-action="AddPatient" class="btn btn-primary btn-block">Add Patient</a>
+            </p>
+        </div>
+    </div>
+    <div class="col-md-12">
+        <div class="panel panel-primary list-panel" id="list-panel">
+            <div class="panel-heading list-panel-heading">
+                <h1 class="panel-title list-panel-title">Patients List</h1>
+            </div>
+            <div class="panel-body">
+                <table id="patient-data-table" class="table table-striped table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Age</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modalDelete" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Delete Patient Record</h4>
+            </div>
+            <div class="modal-body">
+                <p>Delete Patient Record <span id="lblRecordId"></span>?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="btnConfirmDelete" type="button" class="btn btn-default">Delete</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div id="modalInformation" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Info</h4>
+            </div>
+            <div class="modal-body">
+                <p><span id="lblInformationText"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts
+{
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            //Delete Data
+            $('#btnConfirmDelete').on('click', function (e) {
+                var id = $(this).data('id');
+                var data = '{id: ' + id + ' }';
+
+                $.ajax({
+                    type: "DELETE",
+                    url: 'http://localhost:60548/api/Patient/'+id,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function () {
+                        $('#modalDelete').modal('hide');
+                        $('#patient-data-table').DataTable().ajax.reload();
+                    },
+                    failure: function (response) {
+                        alert("Failure. Details: " + response.responseText);
+                    },
+                    error: function (response) {
+                        alert("Error. Details: " + response.responseText);
+                    }
+                });
+            });
+
+            //Open PopUp Confirm Delete
+            $('#patient-data-table').on('click', 'a.editor_remove', function (e) {
+                e.preventDefault();
+                var id = $("#patient-data-table").DataTable().row($(this).closest('tr')).data().id;
+                $('#lblRecordId').text(id);
+                $('#btnConfirmDelete').data('id', id);
+                //alert($("#patient-data-table").DataTable().row($(this).closest('tr')).data().id);
+            });
+
+            // Edit Data
+            $('#patient-data-table').on('click', 'a.editor_edit', function (e) {
+                e.preventDefault();
+                var id = $("#patient-data-table").DataTable().row($(this).closest('tr')).data().id;
+                var url = '@Url.Action("EditPatient", "Home", new { id = "__id__" })';
+                window.location.href = url.replace('__id__', id);;
+            });
+
+            $('#patient-data-table').dataTable({
+                ajax: 'http://localhost:60548/api/Patient',
+                sAjaxDataProp: "",
+                columns: [
+                    { data: "id" },
+                    { data: "firstName" },
+                    { data: "lastName" },
+                    { data: "age" },
+                    {
+                        mData: "Action",
+                        bSortable: false,
+                        className: "center",
+                        defaultContent: '<a href="" class="editor_edit">Edit</a> / <a href="" class="editor_remove" data-toggle="modal" data-target="#modalDelete">Delete</a>'
+                    }
+                ]
+            });
+        });
+    </script>
+
+}
